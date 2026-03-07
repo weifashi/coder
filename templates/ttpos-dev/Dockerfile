@@ -41,6 +41,9 @@ RUN install -m 0755 -d /etc/apt/keyrings \
 # ========== Go 开发工具 ==========
 RUN go install github.com/pilu/fresh@latest
 
+# ========== code-server (VS Code Web) ==========
+RUN curl -fsSL https://code-server.dev/install.sh | sh
+
 # ========== Claude Code ==========
 RUN npm install -g @anthropic-ai/claude-code
 
