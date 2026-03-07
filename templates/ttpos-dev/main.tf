@@ -70,7 +70,8 @@ resource "docker_image" "workspace" {
     dockerfile = "Dockerfile"
   }
   triggers = {
-    dockerfile_hash = filemd5("${path.module}/Dockerfile")
+    dockerfile_hash  = filemd5("${path.module}/Dockerfile")
+    entrypoint_hash  = filemd5("${path.module}/entrypoint.sh")
   }
 }
 
