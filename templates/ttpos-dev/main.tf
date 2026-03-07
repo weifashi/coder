@@ -79,7 +79,7 @@ resource "docker_image" "workspace" {
 resource "coder_agent" "main" {
   os   = "linux"
   arch = "amd64"
-  dir  = "/home/coder/workspaces/ttpos-server-go"
+  dir  = "/home/coder/workspaces"
 
   display_apps {
     vscode       = true
@@ -150,14 +150,6 @@ resource "coder_agent" "main" {
     #!/bin/bash
     set -e
 
-    PROJECT_DIR="/home/coder/workspaces/ttpos-server-go"
-
-    # 下载 Go 依赖
-    if [ -d "$PROJECT_DIR/main" ]; then
-      echo "📥 下载 Go 依赖..."
-      cd "$PROJECT_DIR/main" && go mod download || true
-    fi
-
     # 启动 code-server（VS Code 网页版）
     echo "🌐 启动 code-server..."
     code-server \
@@ -165,7 +157,7 @@ resource "coder_agent" "main" {
       --port 13337 \
       --host 0.0.0.0 \
       --disable-telemetry \
-      "$PROJECT_DIR" &
+      /home/coder/workspaces &
 
     echo "✅ 工作区就绪"
   EOT
@@ -178,7 +170,7 @@ resource "coder_app" "code-server" {
   slug         = "code-server"
   display_name = "VS Code Web"
   icon         = "/icon/code.svg"
-  url          = "http://localhost:13337/?folder=/home/coder/workspaces/ttpos-server-go"
+  url          = "http://localhost:13337/?folder=/home/coder/workspaces"
   subdomain    = false
   share        = "owner"
 
@@ -203,7 +195,7 @@ resource "coder_app" "cursor" {
     "&workspace=", data.coder_workspace.me.name,
     "&url=", urlencode(data.coder_workspace.me.access_url),
     "&agent=main",
-    "&folder=", urlencode("/home/coder/workspaces/ttpos-server-go"),
+    "&folder=", urlencode("/home/coder/workspaces"),
   ])
 }
 
