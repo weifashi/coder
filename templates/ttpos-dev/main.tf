@@ -155,7 +155,7 @@ resource "coder_agent" "main" {
     code-server \
       --auth none \
       --port 13337 \
-      --host 0.0.0.0 \
+      --host :: \
       --disable-telemetry \
       /home/coder/workspaces &
 

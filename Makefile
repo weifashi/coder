@@ -150,6 +150,11 @@ env: ## 生成 .env 和 .gitignore 示例文件
 		echo "POSTGRES_PASSWORD=changeme" >> .env && \
 		echo "POSTGRES_DB=coder" >> .env && \
 		echo 'CODER_ACCESS_URL=http://localhost:7080' >> .env && \
+		echo "" >> .env && \
+		echo "# GitHub OAuth" >> .env && \
+		echo "CODER_OAUTH2_GITHUB_CLIENT_ID=" >> .env && \
+		echo "CODER_OAUTH2_GITHUB_CLIENT_SECRET=" >> .env && \
+		echo "CODER_OAUTH2_GITHUB_ALLOWED_ORGS=" >> .env && \
 		echo ".env 文件已生成，请修改其中的配置" \
 	)
 	@test -f .gitignore && echo ".gitignore 已存在，跳过" || ( \
