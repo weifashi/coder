@@ -10,5 +10,15 @@ fi
 mkdir -p /home/coder/workspaces /home/coder/go /home/coder/.config
 chown coder:coder /home/coder/workspaces /home/coder/go /home/coder/.config
 
+# 修复 Docker socket 权限，让 coder 用户可以访问
+if [ -S /var/run/docker.sock ]; then
+    DOCKER_GID=$(stat -c %g /var/run/docker.sock)
+    if ! getent group "$DOCKER_GID" >/dev/null 2>&1; then
+        groupadd -g "$DOCKER_GID" dockerhost
+    fi
+    DOCKER_GROUP=$(getent group "$DOCKER_GID" | cut -d: -f1)
+    usermod -aG "$DOCKER_GROUP" coder
+fi
+
 # 以 coder 用户执行后续命令
 exec gosu coder "$@"
