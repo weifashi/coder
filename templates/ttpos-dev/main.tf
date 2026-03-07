@@ -151,6 +151,11 @@ resource "coder_agent" "main" {
     #!/bin/bash
     set -e
 
+    # 修复 Docker socket 权限
+    if [ -S /var/run/docker.sock ]; then
+      sudo chmod 666 /var/run/docker.sock
+    fi
+
     # 启动 code-server（VS Code 网页版）
     echo "🌐 启动 code-server..."
     code-server \
