@@ -157,7 +157,7 @@ resource "coder_agent" "main" {
       --port 13337 \
       --host :: \
       --disable-telemetry \
-      /home/coder/workspaces &
+      /home/coder/workspaces > /tmp/code-server.log 2>&1 &
 
     echo "✅ 工作区就绪"
   EOT
