@@ -158,17 +158,8 @@ db-restore: ## 从备份恢复数据库（用法: make db-restore FILE=backups/x
 
 env: ## 生成 .env 和 .gitignore 示例文件
 	@test -f .env && echo ".env 已存在，跳过" || ( \
-		echo "POSTGRES_USER=coder" > .env && \
-		echo "POSTGRES_PASSWORD=changeme" >> .env && \
-		echo "POSTGRES_DB=coder" >> .env && \
-		echo "CODER_DOMAIN=coders.example.com" >> .env && \
-		echo 'CODER_ACCESS_URL=https://coders.example.com' >> .env && \
-		echo "" >> .env && \
-		echo "# GitHub OAuth" >> .env && \
-		echo "CODER_OAUTH2_GITHUB_CLIENT_ID=" >> .env && \
-		echo "CODER_OAUTH2_GITHUB_CLIENT_SECRET=" >> .env && \
-		echo "CODER_OAUTH2_GITHUB_ALLOWED_ORGS=" >> .env && \
-		echo ".env 文件已生成，请修改其中的配置" \
+		cp .env.example .env && \
+		echo ".env 已从 .env.example 复制，请修改其中的配置" \
 	)
 	@test -f .gitignore && echo ".gitignore 已存在，跳过" || ( \
 		echo ".env" > .gitignore && \
