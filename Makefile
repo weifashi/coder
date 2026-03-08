@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-.PHONY: help up down restart status logs logs-coder logs-db \
+.PHONY: help install up down restart status logs logs-coder logs-caddy logs-db \
        build build-no-cache template-push template-create template-list template-versions \
        db-shell db-backup db-restore \
        env clean nuke ws-list ws-stop-all update
@@ -67,6 +67,15 @@ help: ## 显示帮助信息
 
 .DEFAULT_GOAL := help
 
+# ========== 安装 ==========
+
+install: ## 安装 Coder CLI
+	@command -v coder >/dev/null 2>&1 && echo "Coder CLI 已安装: $$(coder version)" || ( \
+		echo "正在安装 Coder CLI..." && \
+		curl -fsSL https://coder.com/install.sh | sh && \
+		echo "安装完成: $$(coder version)" \
+	)
+
 # ========== 服务管理 ==========
 
 up: ## 启动所有服务（后台运行）
@@ -91,6 +100,9 @@ logs: ## 查看所有服务日志（实时）
 
 logs-coder: ## 查看 Coder 服务日志
 	$(COMPOSE) logs -f coder
+
+logs-caddy: ## 查看 Caddy 日志
+	$(COMPOSE) logs -f caddy
 
 logs-db: ## 查看数据库日志
 	$(COMPOSE) logs -f database
@@ -149,7 +161,8 @@ env: ## 生成 .env 和 .gitignore 示例文件
 		echo "POSTGRES_USER=coder" > .env && \
 		echo "POSTGRES_PASSWORD=changeme" >> .env && \
 		echo "POSTGRES_DB=coder" >> .env && \
-		echo 'CODER_ACCESS_URL=http://localhost:7080' >> .env && \
+		echo "CODER_DOMAIN=coders.example.com" >> .env && \
+		echo 'CODER_ACCESS_URL=https://coders.example.com' >> .env && \
 		echo "" >> .env && \
 		echo "# GitHub OAuth" >> .env && \
 		echo "CODER_OAUTH2_GITHUB_CLIENT_ID=" >> .env && \
