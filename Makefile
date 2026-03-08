@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-.PHONY: help install up down restart status logs logs-coder logs-caddy logs-db \
+.PHONY: help install up down restart status logs logs-coder logs-db \
        build build-no-cache template-push template-create template-list template-versions \
        db-shell db-backup db-restore \
        env clean nuke ws-list ws-stop-all update
@@ -78,7 +78,7 @@ install: ## 安装 Coder CLI
 
 # ========== 服务管理 ==========
 
-up: ## 启动所有服务（后台运行）
+up: env ## 启动所有服务（后台运行）
 	$(COMPOSE) up -d
 
 down: ## 停止所有服务
@@ -100,9 +100,6 @@ logs: ## 查看所有服务日志（实时）
 
 logs-coder: ## 查看 Coder 服务日志
 	$(COMPOSE) logs -f coder
-
-logs-caddy: ## 查看 Caddy 日志
-	$(COMPOSE) logs -f caddy
 
 logs-db: ## 查看数据库日志
 	$(COMPOSE) logs -f database

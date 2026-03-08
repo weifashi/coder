@@ -1,6 +1,0 @@
-{$CODER_DOMAIN:coders.weifashi.cn} {
-	reverse_proxy coder:7080
-
-	# WebSocket 支持（Caddy 自动处理，无需额外配置）
-	# HTTPS 证书自动申请和续期
-}
