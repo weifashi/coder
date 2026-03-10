@@ -152,10 +152,13 @@ resource "coder_agent" "main" {
     #!/bin/bash
     set -e
 
-    # 修复 Docker socket 权限
-    if [ -S /var/run/docker.sock ]; then
-      sudo chmod 666 /var/run/docker.sock
-    fi
+    # 等待 DinD dockerd 就绪
+    for i in $(seq 1 30); do
+      if docker info > /dev/null 2>&1; then
+        break
+      fi
+      sleep 1
+    done
 
     # 启动 code-server（VS Code 网页版）
     echo "🌐 启动 code-server..."
@@ -219,18 +222,20 @@ resource "docker_container" "workspace" {
   entrypoint = ["/usr/local/bin/entrypoint.sh"]
   command    = ["sh", "-c", coder_agent.main.init_script]
 
+  privileged = true
+
   env = [
     "CODER_AGENT_TOKEN=${coder_agent.main.token}",
   ]
 
   volumes {
-    host_path      = "/var/run/docker.sock"
-    container_path = "/var/run/docker.sock"
+    volume_name    = docker_volume.home.name
+    container_path = "/home/coder"
   }
 
   volumes {
-    volume_name    = docker_volume.home.name
-    container_path = "/home/coder"
+    volume_name    = docker_volume.docker.name
+    container_path = "/var/lib/docker"
   }
 
   host {
@@ -246,6 +251,13 @@ resource "docker_container" "workspace" {
 
 resource "docker_volume" "home" {
   name = "coder-${data.coder_workspace_owner.me.name}-${data.coder_workspace.me.name}-home"
+  lifecycle {
+    ignore_changes = all
+  }
+}
+
+resource "docker_volume" "docker" {
+  name = "coder-${data.coder_workspace_owner.me.name}-${data.coder_workspace.me.name}-docker"
   lifecycle {
     ignore_changes = all
   }

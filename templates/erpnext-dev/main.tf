@@ -153,10 +153,13 @@ resource "coder_agent" "main" {
     #!/bin/bash
     set -e
 
-    # 修复 Docker socket 权限
-    if [ -S /var/run/docker.sock ]; then
-      sudo chmod 666 /var/run/docker.sock
-    fi
+    # 等待 DinD dockerd 就绪
+    for i in $(seq 1 30); do
+      if docker info > /dev/null 2>&1; then
+        break
+      fi
+      sleep 1
+    done
 
     # 初始化 frappe-bench（首次启动时）
     if [ ! -d /home/coder/workspaces/frappe-bench ]; then
@@ -259,14 +262,11 @@ resource "docker_container" "workspace" {
   entrypoint = ["/usr/local/bin/entrypoint.sh"]
   command    = ["sh", "-c", coder_agent.main.init_script]
 
+  privileged = true
+
   env = [
     "CODER_AGENT_TOKEN=${coder_agent.main.token}",
   ]
-
-  volumes {
-    host_path      = "/var/run/docker.sock"
-    container_path = "/var/run/docker.sock"
-  }
 
   volumes {
     volume_name    = docker_volume.home.name
@@ -277,6 +277,11 @@ resource "docker_container" "workspace" {
   volumes {
     volume_name    = docker_volume.mariadb.name
     container_path = "/var/lib/mysql"
+  }
+
+  volumes {
+    volume_name    = docker_volume.docker.name
+    container_path = "/var/lib/docker"
   }
 
   host {
@@ -299,6 +304,13 @@ resource "docker_volume" "home" {
 
 resource "docker_volume" "mariadb" {
   name = "coder-${data.coder_workspace_owner.me.name}-${data.coder_workspace.me.name}-mariadb"
+  lifecycle {
+    ignore_changes = all
+  }
+}
+
+resource "docker_volume" "docker" {
+  name = "coder-${data.coder_workspace_owner.me.name}-${data.coder_workspace.me.name}-docker"
   lifecycle {
     ignore_changes = all
   }

@@ -10,10 +10,8 @@ fi
 mkdir -p /home/coder/workspaces /home/coder/.config
 chown coder:coder /home/coder/workspaces /home/coder/.config
 
-# 修复 Docker socket 权限
-if [ -S /var/run/docker.sock ]; then
-    chmod 666 /var/run/docker.sock
-fi
+# 启动独立的 Docker 守护进程（DinD）
+dockerd --storage-driver=overlay2 > /tmp/dockerd.log 2>&1 &
 
 # 初始化 MariaDB 数据目录（持久化卷首次挂载时）
 if [ ! -d /var/lib/mysql/mysql ]; then

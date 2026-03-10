@@ -45,6 +45,16 @@ RUN apt-get update && apt-get install -y \
     libcairo2-dev libjpeg-dev libgif-dev librsvg2-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# ========== Docker (完整安装，支持 DinD) ==========
+RUN install -m 0755 -d /etc/apt/keyrings \
+    && curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+       | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+       https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
+       > /etc/apt/sources.list.d/docker.list \
+    && apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin \
+    && rm -rf /var/lib/apt/lists/*
+
 # ========== Bench CLI ==========
 RUN pip install frappe-bench
 
