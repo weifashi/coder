@@ -26,6 +26,7 @@ ENV GOPROXY=https://goproxy.cn,direct
 # ========== Node.js 20 ==========
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
+    && corepack enable pnpm \
     && rm -rf /var/lib/apt/lists/*
 
 # ========== Docker (完整安装，支持 DinD) ==========
