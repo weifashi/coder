@@ -83,9 +83,10 @@ resource "coder_agent" "main" {
   dir  = "/home/coder/workspaces"
 
   display_apps {
-    vscode       = true
-    web_terminal = true
-    ssh_helper   = true
+    vscode                 = true
+    web_terminal           = true
+    ssh_helper             = true
+    port_forwarding_helper = true
   }
 
   # ========== 工作区指标 ==========
