@@ -26,6 +26,19 @@ services:
       database:
         condition: service_healthy
 
+  # 启动后自动为所有模板开启端口共享
+  init-port-sharing:
+    image: curlimages/curl:latest
+    restart: "no"
+    volumes:
+      - ./scripts/init-port-sharing.sh:/init.sh:ro
+    environment:
+      CODER_ADMIN_EMAIL: "${CODER_ADMIN_EMAIL:-}"
+      CODER_ADMIN_PASSWORD: "${CODER_ADMIN_PASSWORD:-}"
+    entrypoint: ["sh", "/init.sh"]
+    depends_on:
+      - coder
+
   database:
     image: postgres:17
     restart: unless-stopped
