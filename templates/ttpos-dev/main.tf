@@ -64,7 +64,8 @@ data "coder_parameter" "memory" {
 # ========== Docker 镜像 ==========
 
 resource "docker_image" "workspace" {
-  name = "ttpos-workspace:latest"
+  name         = "ttpos-workspace:latest"
+  force_remove = true
   build {
     context    = "./."
     dockerfile = "Dockerfile"
