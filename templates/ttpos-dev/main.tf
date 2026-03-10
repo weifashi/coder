@@ -23,7 +23,7 @@ data "coder_parameter" "cpu" {
   name         = "cpu"
   display_name = "CPU (核心)"
   description  = "分配给工作区的 CPU 核心数"
-  default      = "2"
+  default      = "8"
   type         = "number"
   mutable      = true
   option {
@@ -44,7 +44,7 @@ data "coder_parameter" "memory" {
   name         = "memory"
   display_name = "内存 (MB)"
   description  = "分配给工作区的内存大小"
-  default      = "4096"
+  default      = "16384"
   type         = "number"
   mutable      = true
   option {
