@@ -10,6 +10,7 @@ services:
       CODER_ACCESS_URL: "${CODER_ACCESS_URL}"
       CODER_WILDCARD_ACCESS_URL: "${CODER_WILDCARD_ACCESS_URL:-}"
       CODER_PROXY_TRUSTED_HEADERS: "X-Forwarded-For,X-Forwarded-Proto"
+      TF_CLI_CONFIG_FILE: "/opt/terraformrc"
       # GitHub OAuth（留空则不启用）
       CODER_OAUTH2_GITHUB_ALLOW_SIGNUPS: "${CODER_OAUTH2_GITHUB_ALLOW_SIGNUPS:-false}"
       CODER_OAUTH2_GITHUB_ALLOW_EVERYONE: "${CODER_OAUTH2_GITHUB_ALLOW_EVERYONE:-false}"
@@ -20,6 +21,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - coder_home:/home/coder
+      - ./terraformrc:/opt/terraformrc:ro
     depends_on:
       database:
         condition: service_healthy
