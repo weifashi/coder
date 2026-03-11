@@ -17,100 +17,55 @@ provider "docker" {}
 data "coder_workspace" "me" {}
 data "coder_workspace_owner" "me" {}
 
-# ========== 工作区参数 ==========
-
-data "coder_parameter" "cpu" {
-  name         = "cpu"
-  display_name = "CPU (核心)"
-  description  = "分配给工作区的 CPU 核心数"
-  default      = "8"
-  type         = "number"
-  mutable      = true
-  option {
-    name  = "2 核"
-    value = "2"
-  }
-  option {
-    name  = "4 核"
-    value = "4"
-  }
-  option {
-    name  = "8 核"
-    value = "8"
-  }
-}
-
-data "coder_parameter" "memory" {
-  name         = "memory"
-  display_name = "内存 (MB)"
-  description  = "分配给工作区的内存大小"
-  default      = "16384"
-  type         = "number"
-  mutable      = true
-  option {
-    name  = "4 GB"
-    value = "4096"
-  }
-  option {
-    name  = "8 GB"
-    value = "8192"
-  }
-  option {
-    name  = "16 GB"
-    value = "16384"
-  }
-}
-
 # ========== 开发环境选择 ==========
 
-data "coder_parameter" "install_go" {
-  name         = "install_go"
-  display_name = "Go"
-  description  = "安装 Go 1.23 开发环境"
-  type         = "bool"
-  default      = "true"
+data "coder_parameter" "languages" {
+  name         = "languages"
+  display_name = "开发语言环境"
+  description  = "选择需要安装的开发语言（可多选）"
+  type         = "list(string)"
   mutable      = false
-  icon         = "/emojis/1f439.png"
-}
-
-data "coder_parameter" "install_nodejs" {
-  name         = "install_nodejs"
-  display_name = "Node.js"
-  description  = "安装 Node.js 20 + pnpm"
-  type         = "bool"
-  default      = "true"
-  mutable      = false
-  icon         = "/emojis/1f7e2.png"
-}
-
-data "coder_parameter" "install_php" {
-  name         = "install_php"
-  display_name = "PHP"
-  description  = "安装 PHP 8.3 + Composer"
-  type         = "bool"
-  default      = "false"
-  mutable      = false
-  icon         = "/emojis/1f418.png"
-}
-
-data "coder_parameter" "install_python" {
-  name         = "install_python"
-  display_name = "Python"
-  description  = "安装 Python 3.11 + pip"
-  type         = "bool"
-  default      = "false"
-  mutable      = false
-  icon         = "/emojis/1f40d.png"
+  icon         = "/emojis/1f4e6.png"
+  default      = jsonencode(["go", "nodejs"])
+  option {
+    name  = "Go 1.23"
+    value = "go"
+    icon  = "/emojis/1f439.png"
+  }
+  option {
+    name  = "Node.js 20 + pnpm"
+    value = "nodejs"
+    icon  = "/emojis/1f7e2.png"
+  }
+  option {
+    name  = "PHP 8.3 + Composer"
+    value = "php"
+    icon  = "/emojis/1f418.png"
+  }
+  option {
+    name  = "Python 3.11 + pip"
+    value = "python"
+    icon  = "/emojis/1f40d.png"
+  }
 }
 
 # ========== Docker 镜像 ==========
 
 locals {
+  cpu    = 8
+  memory = 16384
+
+  languages    = toset(jsondecode(data.coder_parameter.languages.value))
+  install_go   = contains(local.languages, "go")
+  install_node = contains(local.languages, "nodejs")
+  install_php  = contains(local.languages, "php")
+  install_py   = contains(local.languages, "python")
+
   lang_tag = join("-", compact([
-    data.coder_parameter.install_go.value == "true" ? "go" : "",
-    data.coder_parameter.install_nodejs.value == "true" ? "node" : "",
-    data.coder_parameter.install_php.value == "true" ? "php" : "",
-    data.coder_parameter.install_python.value == "true" ? "py" : "",
+    local.install_go   ? "go"   : "",
+    local.install_node ? "node" : "",
+    local.install_php  ? "php"  : "",
+    local.install_py   ? "py"   : "",
   ]))
 }
 
@@ -121,19 +76,16 @@ resource "docker_image" "workspace" {
     context    = "./."
     dockerfile = "Dockerfile"
     build_args = {
-      INSTALL_GO      = data.coder_parameter.install_go.value
-      INSTALL_NODEJS  = data.coder_parameter.install_nodejs.value
-      INSTALL_PHP     = data.coder_parameter.install_php.value
-      INSTALL_PYTHON  = data.coder_parameter.install_python.value
+      INSTALL_GO      = tostring(local.install_go)
+      INSTALL_NODEJS  = tostring(local.install_node)
+      INSTALL_PHP     = tostring(local.install_php)
+      INSTALL_PYTHON  = tostring(local.install_py)
     }
   }
   triggers = {
-    dockerfile_hash  = filemd5("${path.module}/Dockerfile")
-    entrypoint_hash  = filemd5("${path.module}/entrypoint.sh")
-    install_go       = data.coder_parameter.install_go.value
-    install_nodejs   = data.coder_parameter.install_nodejs.value
-    install_php      = data.coder_parameter.install_php.value
-    install_python   = data.coder_parameter.install_python.value
+    dockerfile_hash = filemd5("${path.module}/Dockerfile")
+    entrypoint_hash = filemd5("${path.module}/entrypoint.sh")
+    languages       = data.coder_parameter.languages.value
   }
 }
 
@@ -278,8 +230,8 @@ resource "docker_container" "workspace" {
   image    = docker_image.workspace.image_id
   must_run = true
 
-  cpu_shares = tonumber(data.coder_parameter.cpu.value) * 1024
-  memory     = tonumber(data.coder_parameter.memory.value) * 1024
+  cpu_shares = local.cpu * 1024
+  memory     = local.memory * 1024
 
   entrypoint = ["/usr/local/bin/entrypoint.sh"]
   command    = ["sh", "-c", coder_agent.main.init_script]
