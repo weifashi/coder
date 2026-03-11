@@ -29,22 +29,22 @@ data "coder_parameter" "languages" {
   default      = jsonencode(["go", "nodejs"])
   option {
     name  = "Go 1.23"
-    value = "go"
+    value = jsonencode(["go"])
     icon  = "/emojis/1f439.png"
   }
   option {
     name  = "Node.js 20 + pnpm"
-    value = "nodejs"
+    value = jsonencode(["nodejs"])
     icon  = "/emojis/1f7e2.png"
   }
   option {
     name  = "PHP 8.3 + Composer"
-    value = "php"
+    value = jsonencode(["php"])
     icon  = "/emojis/1f418.png"
   }
   option {
     name  = "Python 3.11 + pip"
-    value = "python"
+    value = jsonencode(["python"])
     icon  = "/emojis/1f40d.png"
   }
 }
@@ -55,7 +55,7 @@ locals {
   cpu    = 8
   memory = 16384
 
-  languages    = toset(jsondecode(data.coder_parameter.languages.value))
+  languages    = toset(flatten(jsondecode(data.coder_parameter.languages.value)))
   install_go   = contains(local.languages, "go")
   install_node = contains(local.languages, "nodejs")
   install_php  = contains(local.languages, "php")
