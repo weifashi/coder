@@ -61,18 +61,79 @@ data "coder_parameter" "memory" {
   }
 }
 
+# ========== 开发环境选择 ==========
+
+data "coder_parameter" "install_go" {
+  name         = "install_go"
+  display_name = "Go"
+  description  = "安装 Go 1.23 开发环境"
+  type         = "bool"
+  default      = "true"
+  mutable      = false
+  icon         = "/emojis/1f439.png"
+}
+
+data "coder_parameter" "install_nodejs" {
+  name         = "install_nodejs"
+  display_name = "Node.js"
+  description  = "安装 Node.js 20 + pnpm"
+  type         = "bool"
+  default      = "true"
+  mutable      = false
+  icon         = "/emojis/1f7e2.png"
+}
+
+data "coder_parameter" "install_php" {
+  name         = "install_php"
+  display_name = "PHP"
+  description  = "安装 PHP 8.3 + Composer"
+  type         = "bool"
+  default      = "false"
+  mutable      = false
+  icon         = "/emojis/1f418.png"
+}
+
+data "coder_parameter" "install_python" {
+  name         = "install_python"
+  display_name = "Python"
+  description  = "安装 Python 3.11 + pip"
+  type         = "bool"
+  default      = "false"
+  mutable      = false
+  icon         = "/emojis/1f40d.png"
+}
+
 # ========== Docker 镜像 ==========
 
+locals {
+  lang_tag = join("-", compact([
+    data.coder_parameter.install_go.value == "true" ? "go" : "",
+    data.coder_parameter.install_nodejs.value == "true" ? "node" : "",
+    data.coder_parameter.install_php.value == "true" ? "php" : "",
+    data.coder_parameter.install_python.value == "true" ? "py" : "",
+  ]))
+}
+
 resource "docker_image" "workspace" {
-  name         = "ttpos-workspace:latest"
+  name         = "ttpos-workspace:${local.lang_tag != "" ? local.lang_tag : "base"}"
   force_remove = true
   build {
     context    = "./."
     dockerfile = "Dockerfile"
+    build_args = {
+      INSTALL_GO      = data.coder_parameter.install_go.value
+      INSTALL_NODEJS  = data.coder_parameter.install_nodejs.value
+      INSTALL_PHP     = data.coder_parameter.install_php.value
+      INSTALL_PYTHON  = data.coder_parameter.install_python.value
+    }
   }
   triggers = {
     dockerfile_hash  = filemd5("${path.module}/Dockerfile")
     entrypoint_hash  = filemd5("${path.module}/entrypoint.sh")
+    install_go       = data.coder_parameter.install_go.value
+    install_nodejs   = data.coder_parameter.install_nodejs.value
+    install_php      = data.coder_parameter.install_php.value
+    install_python   = data.coder_parameter.install_python.value
   }
 }
 

@@ -7,8 +7,14 @@ if [ "$(stat -c %U /home/coder 2>/dev/null)" != "coder" ]; then
 fi
 
 # 确保常用子目录存在且权限正确
-mkdir -p /home/coder/workspaces /home/coder/go /home/coder/.config
-chown coder:coder /home/coder/workspaces /home/coder/go /home/coder/.config
+mkdir -p /home/coder/workspaces /home/coder/.config
+chown coder:coder /home/coder/workspaces /home/coder/.config
+
+# Go 目录（仅安装了 Go 时创建）
+if [ -d /usr/local/go ]; then
+    mkdir -p /home/coder/go
+    chown coder:coder /home/coder/go
+fi
 
 # 启动独立的 Docker 守护进程（DinD）
 dockerd --storage-driver=overlay2 > /tmp/dockerd.log 2>&1 &
