@@ -59,6 +59,16 @@ data "coder_parameter" "install_python" {
   icon         = "/emojis/1f40d.png"
 }
 
+data "coder_parameter" "start_port" {
+  name         = "start_port"
+  display_name = "宿主机起始端口"
+  description  = "映射到宿主机的起始端口号（会映射 10 个端口：起始端口+0 到 +9 对应容器内 8000-8009）。不同工作区请使用不同的起始端口避免冲突。"
+  type         = "number"
+  default      = "10000"
+  mutable      = false
+  icon         = "/emojis/1f310.png"
+}
+
 # ========== Docker 镜像 ==========
 
 locals {
@@ -257,6 +267,16 @@ resource "docker_container" "workspace" {
   volumes {
     volume_name    = docker_volume.docker.name
     container_path = "/var/lib/docker"
+  }
+
+  # 端口映射：宿主机 start_port+0~+9 -> 容器 8000~8009
+  dynamic "ports" {
+    for_each = range(10)
+    content {
+      internal = 8000 + ports.value
+      external = tonumber(data.coder_parameter.start_port.value) + ports.value
+      protocol = "tcp"
+    }
   }
 
   host {
